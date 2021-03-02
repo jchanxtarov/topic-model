@@ -116,3 +116,13 @@ class PLSA(object):
             L,
         ))
         return L
+
+    def get_Pz_u(self):
+        PzPu_z = self.Pi_z * self.Pz
+        Pz_u = PzPu_z / np.sum(PzPu_z, axis=1).reshape(self.n_uniq_users, 1)
+        return Pz_u
+
+    def get_Pz_i(self):
+        PzPi_z = self.Pi_z * self.Pz
+        Pz_i = PzPi_z / np.sum(PzPi_z, axis=1).reshape(self.n_uniq_items, 1)
+        return Pz_i
