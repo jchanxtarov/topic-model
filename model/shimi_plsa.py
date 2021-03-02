@@ -67,22 +67,16 @@ class PLSA(object):
         '''
         # E-step  -----------------------------------
         # P(u,i,z)
-        # TODO: 二重ループの回避
-        for k in range(self.K):
-            for i in range(self.n_data):
-                self.Puiz[i][k] = np.log(self.Pz[k]) \
-                    + np.log(self.Pu_z[self.users[i]][k]) \
-                    + np.log(self.Pi_z[self.items[i]][k])
+        self.Puiz = np.array([
+            np.log(self.Pz)
+            + np.log(self.Pu_z[self.users[i]])
+            + np.log(self.Pi_z[self.items[i]])
+            for i in range(self.n_data)
+        ])  # (self.n_data, self.K)
 
         # P(z|u,i)
-        # TODO: 二重ループの回避
-        for i in range(self.n_data):
-            sum_ = 0.0
-            for k in range(self.K):
-                sum_ += pow(math.e, self.Puiz[i][k])
-            for k in range(self.K):
-                self.Pz_ui[i][k] = pow(math.e, self.Puiz[i][k]) / sum_
-
+        sum_ = np.sum(pow(math.e, self.Puiz), axis=1)  # (self.n_data,)
+        self.Pz_ui = pow(math.e, self.Puiz) / sum_.reshape(self.n_data, 1)
         self.Pz_ui[np.isnan(self.Pz_ui)] = 0.0
         self.Pz_ui[np.isinf(self.Pz_ui)] = 0.0
 
@@ -90,40 +84,33 @@ class PLSA(object):
         self.Pz = np.sum(self.Pz_ui, axis=0) / self.n_data
 
         self.Pu_z = np.zeros((self.n_uniq_users, self.K))
-        # TODO: 二重ループの回避
-        for k in range(self.K):
-            for i in range(self.n_data):
-                self.Pu_z[self.users[i]][k] += self.Pz_ui[i][k]
-            for i in range(self.n_uniq_users):
-                self.Pu_z[i][k] = self.Pu_z[i][k] / (self.n_data * self.Pz[k])
+        for n in range(self.n_data):
+            self.Pu_z[self.users[n]] += self.Pz_ui[n]
+        # (self.n_uniq_users, self.K)
+        self.Pu_z = self.Pu_z / (self.n_data * self.Pz)
 
         self.Pi_z = np.zeros((self.n_uniq_items, self.K))
-        for k in range(self.K):
-            for i in range(self.n_data):
-                self.Pi_z[self.items[i]][k] += self.Pz_ui[i][k]
-            for i in range(self.n_uniq_items):
-                self.Pi_z[i][k] = self.Pi_z[i][k] / (self.n_data * self.Pz[k])
+        for n in range(self.n_data):
+            self.Pi_z[self.items[n]] += self.Pz_ui[n]
+        # (self.n_uniq_items, self.K)
+        self.Pi_z = self.Pi_z / (self.n_data * self.Pz)
 
     def llh(self):
         '''
         対数尤度
         '''
         # P(u,i,z)
-        # TODO: 二重ループの回避
-        for k in range(self.K):
-            for i in range(self.n_data):
-                self.Puiz[i][k] = np.log(self.Pz[k]) \
-                    + np.log(self.Pu_z[self.users[i]][k]) \
-                    + np.log(self.Pi_z[self.items[i]][k])
+        self.Puiz = np.array([
+            np.log(self.Pz)
+            + np.log(self.Pu_z[self.users[i]])
+            + np.log(self.Pi_z[self.items[i]])
+            for i in range(self.n_data)
+        ])  # (self.n_data, self.K)
 
-        # P(z|u,i)
-        L = 0
-        # TODO: 二重ループの回避
-        for i in range(self.n_data):
-            sum_ = 0
-            for k in range(self.K):
-                sum_ += pow(math.e, self.Puiz[i][k])
-            L += np.log(sum_)
+        L = np.sum(
+            np.log(np.sum(pow(math.e, self.Puiz), axis=1)),  # (self.n_data, 1)
+            axis=0,
+        )
         print('P(z): {0} | llh: {1}'.format(
             self.Pz,
             L,
