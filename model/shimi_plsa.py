@@ -8,8 +8,8 @@ from tqdm import tqdm
 
 class PLSA(object):
     # TODO: arg parser の導入
-    def __init__(self, users, items, n_class):
-        self.max_repeat_num = 3
+    def __init__(self, users, items, n_class, max_repeat_num=10):
+        self.max_repeat_num = max_repeat_num
         self.finish_ratio = 1.0e-5
         self.prev_llh = 100000.0
 
