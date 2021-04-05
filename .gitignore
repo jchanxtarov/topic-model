@@ -1,2 +1,3 @@
 datasets/*
 *.ipynb
+!run_sample.ipynb
