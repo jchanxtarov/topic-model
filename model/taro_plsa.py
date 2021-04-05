@@ -4,11 +4,11 @@ import math
 
 import numpy as np
 # from tqdm import tqdm
-from tqdm.notebook import tqdm  # notebook で利用する場合
+from tqdm.notebook import tqdm  # run with notebook
 
 
 class PLSA(object):
-    # TODO: arg parser の導入
+    # TODO: add arg parser
     def __init__(self, users, items, n_class, max_repeat_num=10):
         self.max_repeat_num = max_repeat_num
         self.finish_ratio = 1.0e-5
@@ -39,7 +39,7 @@ class PLSA(object):
         self.Pu_z = np.random.rand(self.n_uniq_users, self.K)
         self.Pi_z = np.random.rand(self.n_uniq_items, self.K)
 
-        # 正規化
+        # regularization
         self.Pz /= np.sum(self.Pz)
         self.Pu_z /= np.sum(self.Pu_z, axis=0)
         self.Pi_z /= np.sum(self.Pi_z, axis=0)
@@ -51,7 +51,7 @@ class PLSA(object):
 
     def train(self):
         '''
-        対数尤度が収束するまでEステップとMステップを繰り返す
+        repeat e-step and m-step and predict each params
         '''
         for i in tqdm(range(self.max_repeat_num), desc='training plsa: '):
             self.em_algorithm()
@@ -71,8 +71,8 @@ class PLSA(object):
 
     def em_algorithm(self):
         '''
-        EMアルゴリズム
-        P(z), P(u|z), P(i|z)の更新
+        EM algorythm
+        update P(z), P(u|z), P(i|z)
         '''
         # E-step  -----------------------------------
         # P(u,i,z)
@@ -106,7 +106,7 @@ class PLSA(object):
 
     def _calc_llh(self):
         '''
-        対数尤度
+        log likelihood
         '''
         # P(u,i,z)
         self.Puiz = np.array([
