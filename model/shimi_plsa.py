@@ -3,7 +3,8 @@
 import math
 
 import numpy as np
-from tqdm import tqdm
+# from tqdm import tqdm
+from tqdm.notebook import tqdm  # notebook で利用する場合
 
 
 class PLSA(object):
@@ -13,6 +14,7 @@ class PLSA(object):
         self.finish_ratio = 1.0e-5
         self.llh = None
         self.prev_llh = 100000.0
+        self.seed = 2020
 
         self.users = users
         self.items = items
@@ -24,13 +26,15 @@ class PLSA(object):
             + (self.K * self.n_uniq_users) \
             + (self.K * self.n_uniq_items)
 
-        print('n_data: {0} | n_uniq_users: {1} | n_uniq_items: {2} | n_class: {3}'.format(
-            self.n_data,
-            self.n_uniq_users,
-            self.n_uniq_items,
-            self.K,
-        ))
+        # # TODO: remove test
+        # print('n_data: {0} | n_uniq_users: {1} | n_uniq_items: {2} | n_class: {3}'.format(
+        #     self.n_data,
+        #     self.n_uniq_users,
+        #     self.n_uniq_items,
+        #     self.K,
+        # ))
 
+        np.random.seed(seed=self.seed)
         self.Pz = np.random.rand(self.K)
         self.Pu_z = np.random.rand(self.n_uniq_users, self.K)
         self.Pi_z = np.random.rand(self.n_uniq_items, self.K)
@@ -49,12 +53,12 @@ class PLSA(object):
         '''
         対数尤度が収束するまでEステップとMステップを繰り返す
         '''
-        for i in tqdm(range(self.max_repeat_num)):
-            print('EM: {}'.format(i + 1))
+        for i in tqdm(range(self.max_repeat_num), desc='training plsa: '):
             self.em_algorithm()
             llh = self._calc_llh()
             ratio = abs((llh - self.prev_llh) / self.prev_llh)
-            print("llh : {0} | ratio : {1}".format(
+            tqdm.write(" - EM: {0} | llh : {1} | ratio : {2}".format(
+                i + 1,
                 llh,
                 ratio,
             ))
@@ -64,7 +68,6 @@ class PLSA(object):
             self.prev_llh = llh
 
         self.llh = llh
-        print('finish training.')
 
     def em_algorithm(self):
         '''
@@ -117,10 +120,11 @@ class PLSA(object):
             np.log(np.sum(pow(math.e, self.Puiz), axis=1)),  # (self.n_data, 1)
             axis=0,
         )
-        print('P(z): {0} | llh: {1}'.format(
-            self.Pz,
-            L,
-        ))
+        # # TODO: remove test
+        # print('P(z): {0} | llh: {1}'.format(
+        #     self.Pz,
+        #     L,
+        # ))
         return L
 
     def get_pz_u(self):
