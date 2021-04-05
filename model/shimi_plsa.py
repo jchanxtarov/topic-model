@@ -11,6 +11,7 @@ class PLSA(object):
     def __init__(self, users, items, n_class, max_repeat_num=10):
         self.max_repeat_num = max_repeat_num
         self.finish_ratio = 1.0e-5
+        self.llh = None
         self.prev_llh = 100000.0
 
         self.users = users
@@ -19,6 +20,10 @@ class PLSA(object):
         self.n_uniq_items = len(set(items))
         self.n_data = len(users)
         self.K = n_class
+        self.n_parameters = (self.K - 1) \
+            + (self.K * self.n_uniq_users) \
+            + (self.K * self.n_uniq_items)
+
         print('n_data: {0} | n_uniq_users: {1} | n_uniq_items: {2} | n_class: {3}'.format(
             self.n_data,
             self.n_uniq_users,
@@ -47,7 +52,7 @@ class PLSA(object):
         for i in tqdm(range(self.max_repeat_num)):
             print('EM: {}'.format(i + 1))
             self.em_algorithm()
-            llh = self.llh()
+            llh = self._calc_llh()
             ratio = abs((llh - self.prev_llh) / self.prev_llh)
             print("llh : {0} | ratio : {1}".format(
                 llh,
@@ -58,7 +63,8 @@ class PLSA(object):
                 break
             self.prev_llh = llh
 
-        return llh
+        self.llh = llh
+        print('finish training.')
 
     def em_algorithm(self):
         '''
@@ -95,7 +101,7 @@ class PLSA(object):
         # (self.n_uniq_items, self.K)
         self.Pi_z = self.Pi_z / (self.n_data * self.Pz)
 
-    def llh(self):
+    def _calc_llh(self):
         '''
         対数尤度
         '''
@@ -117,14 +123,21 @@ class PLSA(object):
         ))
         return L
 
-    def get_Pz_u(self):
+    def get_pz_u(self):
         PzPu_z = self.Pu_z * self.Pz
         Pz_u = PzPu_z / np.sum(PzPu_z, axis=1).reshape(self.n_uniq_users, 1)
         return Pz_u
 
-    def get_Pz_i(self):
+    def get_pz_i(self):
         PzPi_z = self.Pi_z * self.Pz
         Pz_i = PzPi_z / np.sum(PzPi_z, axis=1).reshape(self.n_uniq_items, 1)
         return Pz_i
 
-    # TODO: calc AIC, BIC
+    def get_aic(self):
+        aic = ((-2) * self.llh) + (2 * self.n_parameters)
+        return aic
+
+    def get_bic(self):
+        bic = ((-2) * self.llh) + \
+            (self.n_parameters * np.log(self.n_data))
+        return bic
