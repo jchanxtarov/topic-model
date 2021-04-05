@@ -27,7 +27,8 @@ class PLSA(object):
             + (self.K * self.n_uniq_items)
 
         # # TODO: remove test
-        # print('n_data: {0} | n_uniq_users: {1} | n_uniq_items: {2} | n_class: {3}'.format(
+        # print('n_data: {0} | n_uniq_users: {1} | n_uniq_items: {2} | \
+        #     n_class: {3}'.format(
         #     self.n_data,
         #     self.n_uniq_users,
         #     self.n_uniq_items,
