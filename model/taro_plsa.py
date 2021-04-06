@@ -7,6 +7,7 @@ import numpy as np
 from tqdm.notebook import tqdm  # with notebook
 
 
+# TODO: create object to other file and inheritance
 class PLSA(object):
     # TODO: add arg parser
     def __init__(self, users, items, n_class, max_iterations=10):

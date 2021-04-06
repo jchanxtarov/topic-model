@@ -8,6 +8,7 @@ from scipy.special import digamma, gammaln
 from tqdm.notebook import tqdm  # with notebook
 
 
+# TODO: create object to other file and inheritance
 class LDA:
     def __init__(self, users, items, n_topics=3, max_iterations=10):
         # TODO: add arg parser
