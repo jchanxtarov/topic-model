@@ -1,3 +1,4 @@
 datasets/*
 *.ipynb
 !run_sample.ipynb
+taro_lda.py
