@@ -1,5 +1,6 @@
 __pychace__/*
 .mypy_cache
 datasets/*
+.ipynb_checkpoints
 *.ipynb
 !run_sample.ipynb
