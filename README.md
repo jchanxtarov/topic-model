@@ -11,4 +11,4 @@ The code has been tested running under Python 3.7.9 The required packages are as
 ...
 
 ## Example to Run the Codes
-Please see `run_sample.py`.
+Please see `run_sample.ipynb`.

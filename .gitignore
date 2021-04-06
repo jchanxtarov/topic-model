@@ -1,4 +1,5 @@
+__pychace__/*
+.mypy_cache
 datasets/*
 *.ipynb
 !run_sample.ipynb
-taro_lda.py
