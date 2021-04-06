@@ -4,8 +4,8 @@ from collections import defaultdict
 
 import numpy as np
 from scipy.special import digamma, gammaln
-# from tqdm import tqdm
-from tqdm.notebook import tqdm  # run with notebook
+# from tqdm import tqdm  # with .py script
+from tqdm.notebook import tqdm  # with notebook
 
 
 class LDA:

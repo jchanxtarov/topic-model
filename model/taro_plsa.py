@@ -3,8 +3,8 @@
 import math
 
 import numpy as np
-# from tqdm import tqdm
-from tqdm.notebook import tqdm  # run with notebook
+# from tqdm import tqdm  # with .py script
+from tqdm.notebook import tqdm  # with notebook
 
 
 class PLSA(object):
