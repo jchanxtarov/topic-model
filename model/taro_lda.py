@@ -15,9 +15,9 @@ class LDA:
         self.max_iterations = max_iterations
         self.finish_ratio = 1.0e-5
         self.llh = None
-        self.prev_llh = 100000.0
+        # self.prev_llh = 100000.0
         self.perplexity = None
-        # self.prev_perplexity = 100000.0  # TODO: consider
+        self.prev_perplexity = 100000.0
         self.seed = 2020
         np.random.seed(seed=self.seed)
 
@@ -79,26 +79,38 @@ class LDA:
                 self.topic_ui[userid][j] = topic
 
     def train(self):
+        count = 0
         for iteration in tqdm(range(self.max_iterations)):
             self._gibbs_sampling()
             self._update_alpha()
             self._update_beta()
             self._calc_loglikelihood()
+            self._calc_perplexity()
 
-            ratio = abs((self.llh - self.prev_llh) / self.prev_llh)
-            tqdm.write(" - iteration : {0} | llh : {1} | ratio : {2}".format(
+            ratio = abs((self.perplexity - self.prev_perplexity)
+                        / self.prev_perplexity)
+            if self.perplexity > self.prev_perplexity:
+                count += 1
+            else:
+                count = 0
+
+            tqdm.write(" - iter : {0} | perplexity : {1} | ratio : {2} | \
+                count : {3}".format(
                 iteration + 1,
-                self.llh,
+                self.perplexity,
                 ratio,
+                count,
             ))
 
-            if ratio < self.finish_ratio:
+            # (変化率が一定以下，もしくは2回以上最低値を連続で更新できなかった場合に収束)
+            if (ratio < self.finish_ratio) or (count >= 2):
                 break
-            self.prev_llh = self.llh
+            self.prev_perplexity = self.perplexity
 
         self._calc_perplexity()
-        print("finish training! | perplexity : {}".format(
+        print("finish training! | perplexity : {0} | pz : {1}".format(
             self.perplexity,
+            self.get_pz(),
         ))
 
     def _gibbs_sampling(self):
@@ -120,9 +132,11 @@ class LDA:
                 self.matrix_n_z[topic] += 1
 
     def _sampling_topic(self, userid, itemid):
-        prob = (self.matrix_n_uz[userid, :] + self.alpha) * \
-            (self.matrix_n_zi[:, itemid] + self.beta) / \
+        left = (self.matrix_n_uz[userid, :] + self.alpha) / \
+            (self.matrix_n_u[userid] + self.alpha * self.n_topics)
+        right = (self.matrix_n_zi[:, itemid] + self.beta) / \
             (self.matrix_n_z + self.beta * self.n_items)
+        prob = right * left
         prob /= prob.sum()
 
         return np.random.multinomial(1, prob).argmax()
@@ -183,20 +197,50 @@ class LDA:
         """
         calculate perplexity
         """
-        item_dist4topics = (self.matrix_n_zi + self.beta) / \
-            (self.matrix_n_z[:, None] + self.beta * self.n_items)
+        item_dist4topics = self.get_phi()
+        topic_dist4users = self.get_theta()
         sum_prob = 0.0
 
+        # TODO: escape loop
         for i in range(len(self.dict_user_items)):
-            topic_dist4users = (self.matrix_n_uz[i] + self.alpha) / (
-                self.matrix_n_uz[i].sum() + self.alpha * self.n_topics)
             for j in range(len(self.dict_user_items[i])):
                 topic_dist4items = item_dist4topics[:,
                                                     self.dict_user_items[i][j]]
                 sum_prob += np.log(np.dot(topic_dist4items,
-                                          topic_dist4users))
+                                          topic_dist4users[i]))
 
         self.perplexity = np.exp(- (1 / self.n_data) * sum_prob)
+
+    # TODO: add function to compute Coherence
+    # def _calc_coherence(self):
+
+    def get_phi(self):
+        """
+        Compute phi = p(i|z).
+        """
+        # (z, i)
+        numer = self.matrix_n_zi + self.beta
+        # (z, ) -> (z, 1)
+        denom = self.matrix_n_z[:, np.newaxis] + self.n_items * self.beta
+        return numer / denom
+
+    def get_theta(self):
+        """
+        Compute theta = p(u|z).
+        """
+        numer = self.matrix_n_uz + self.alpha  # (u, z)
+        # (u,) -> (u, 1)
+        denom = self.matrix_n_u[:, np.newaxis] + self.n_topics * self.alpha
+        return numer / denom
+
+    def get_pz(self):
+        """
+        Compute p(z).
+        """
+        pu_z = self.get_theta()
+        prob = pu_z.sum(axis=0)
+        prob /= prob.sum()
+        return prob
 
     def get_aic(self):
         aic = ((-2) * self.llh) + (2 * self.n_parameters)
