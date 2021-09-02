@@ -28,13 +28,8 @@ class PLSA(object):
             + (self.K * self.n_items)
 
         # TODO: remove test
-        print('n_data: {0} | n_users: {1} | n_items: {2} | \
-            n_classes: {3}'.format(
-            self.n_data,
-            self.n_users,
-            self.n_items,
-            self.K,
-        ))
+        print('n_data: {0} | n_users: {1} | n_items: {2} | n_classes: {3}'.format(
+            self.n_data, self.n_users, self.n_items, self.K))
 
         np.random.seed(seed=self.seed)
         self.Pz = np.random.rand(self.K)
@@ -59,11 +54,7 @@ class PLSA(object):
             self.em_algorithm()
             llh = self._calc_llh()
             ratio = abs((llh - self.prev_llh) / self.prev_llh)
-            tqdm.write(" - EM: {0} | llh : {1} | ratio : {2}".format(
-                i + 1,
-                llh,
-                ratio,
-            ))
+            tqdm.write(" - EM: {0} | llh : {1} | ratio : {2}".format(i + 1, llh, ratio))
 
             if ratio < self.finish_ratio:
                 break
@@ -79,9 +70,7 @@ class PLSA(object):
         # E-step  -----------------------------------
         # P(u,i,z)
         self.Puiz = np.array([
-            np.log(self.Pz)
-            + np.log(self.Pu_z[self.users[i]])
-            + np.log(self.Pi_z[self.items[i]])
+            np.log(self.Pz) + np.log(self.Pu_z[self.users[i]]) + np.log(self.Pi_z[self.items[i]])
             for i in range(self.n_data)
         ])  # (self.n_data, self.K)
 
@@ -112,9 +101,7 @@ class PLSA(object):
         '''
         # P(u,i,z)
         self.Puiz = np.array([
-            np.log(self.Pz)
-            + np.log(self.Pu_z[self.users[i]])
-            + np.log(self.Pi_z[self.items[i]])
+            np.log(self.Pz) + np.log(self.Pu_z[self.users[i]]) + np.log(self.Pi_z[self.items[i]])
             for i in range(self.n_data)
         ])  # (self.n_data, self.K)
 
@@ -122,11 +109,6 @@ class PLSA(object):
             np.log(np.sum(pow(math.e, self.Puiz), axis=1)),  # (self.n_data, 1)
             axis=0,
         )
-        # # TODO: remove test
-        # print('P(z): {0} | llh: {1}'.format(
-        #     self.Pz,
-        #     llh,
-        # ))
         return llh
 
     def get_pz_u(self):
