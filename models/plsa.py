@@ -10,12 +10,12 @@ from tqdm.notebook import tqdm  # with notebook
 # TODO: create object to other file and inheritance
 class PLSA(object):
     # TODO: add arg parser
-    def __init__(self, users, items, n_class, max_iterations=10):
+    def __init__(self, users, items, n_class, max_iterations=10, finish_ratio=1.0e-4, seed=2020):
         self.max_iterations = max_iterations
-        self.finish_ratio = 1.0e-5
+        self.finish_ratio = finish_ratio
         self.llh = None
         self.prev_llh = 100000.0
-        self.seed = 2020
+        self.seed = seed
 
         self.users = users
         self.items = items
